@@ -15,7 +15,6 @@ export const createIssue = async (req, res) => {
       description,
       assignedTo: assignedTo || null,
       createdBy,
-      statusTimestamps: { open: new Date() },
     });
 
     await issue.save();
@@ -89,7 +88,7 @@ export const deleteIssue = async (req, res) => {
 
 export const updateIssue = async (req, res) => {
   const { issueId } = req.params;
-  const { title, description } = req.body;
+  const { title, description, status } = req.body;
   try {
     const issue = await Issue.findById(issueId);
     if (!issue) {
@@ -98,6 +97,7 @@ export const updateIssue = async (req, res) => {
 
     //  updating the fields
     issue.title = title || issue.title;
+    issue.status = status || issue.status;
     issue.description = description || issue.description;
 
     await issue.save();
