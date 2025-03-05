@@ -15,8 +15,7 @@ const userSchema = new mongoose.Schema(
     profileImg: {
       type: String,
       required: false,
-      default:
-        "https://www.clipartkey.com/mpngs/m/152-1520367_user-profile-default-image-png-clipart-png-download.png",
+      trim: true,
     },
     email: {
       type: String,

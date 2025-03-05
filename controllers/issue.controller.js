@@ -1,5 +1,6 @@
 import Issue from "../models/issue.model.js";
 import User from "../models/user.model.js";
+import mongoose from "mongoose";
 
 export const createIssue = async (req, res) => {
   try {
@@ -35,10 +36,10 @@ export const assignIssue = async (req, res) => {
     const issue = await Issue.findById(issueId);
     if (!issue) return res.status(404).json({ message: "Issue not found" });
 
-    // Ensure the issue is not already assigned
+    // Ensure the issue is not already assigned (optional: remove this if reassigning is allowed)
     if (issue.assignedTo) {
       return res.status(400).json({
-        message: "This issue is already assigned to another technician",
+        message: "This issue is already assigned to a technician",
       });
     }
 
@@ -50,24 +51,19 @@ export const assignIssue = async (req, res) => {
         .json({ message: "Invalid technician ID or technician not found" });
     }
 
-    // Check if the technician is already assigned to another issue
-    const existingAssignment = await Issue.findOne({
-      assignedTo: technicianId,
-    });
-    if (existingAssignment) {
-      return res
-        .status(400)
-        .json({ message: "Technician is already assigned to another issue" });
-    }
-
     // Assign the issue to the technician
     issue.assignedTo = technicianId;
-    issue.statusTimestamps.inProgress = new Date();
     await issue.save();
+
+    // Populate assignedTo field to get technician details
+    const updatedIssue = await Issue.findById(issueId).populate(
+      "assignedTo",
+      "name email role profileImg"
+    );
 
     return res
       .status(200)
-      .json({ message: "Issue assigned successfully", issue });
+      .json({ message: "Issue assigned successfully", issue: updatedIssue });
   } catch (error) {
     console.error("Error in assignIssue:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -148,5 +144,53 @@ export const getIssuesByStatus = async (req, res) => {
   } catch (error) {
     console.error("Error in getIssuesByStatus:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// get single ID
+export const getSingleIssue = async (req, res) => {
+  const { issueId } = req.params;
+
+  try {
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(issueId)) {
+      return res.status(400).json({ message: "Invalid issue ID format" });
+    }
+
+    // Fetch issue and populate the assignedTo field with technician details
+    const issue = await Issue.findById(issueId).populate(
+      "assignedTo",
+      "name email role profileImg"
+    );
+
+    if (!issue) {
+      return res.status(404).json({ message: "Issue not found" });
+    }
+
+    return res.status(200).json(issue);
+  } catch (error) {
+    console.error("Error in getSingleIssue controller:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// get only 5 latest issues
+
+export const getLatestIssues = async (req, res) => {
+  try {
+    // Fetch latest 5 issues and populate assignedTo details
+    const issues = await Issue.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("assignedTo", "name email profileImg role"); // 👈 Fetch only necessary fields
+
+    if (!issues.length) {
+      return res.status(200).json({ message: "No issues found", issues: [] });
+    }
+
+    return res.status(200).json(issues);
+  } catch (error) {
+    console.error("Error fetching latest issues:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

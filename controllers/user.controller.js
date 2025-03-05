@@ -25,11 +25,21 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const PROFILE_PICS = [
+      "https://avatars.githubusercontent.com/u/76118931?v=4",
+      "https://avatars.githubusercontent.com/u/77917845?v=4",
+      "https://avatars.githubusercontent.com/u/75869731?v=4",
+      "https://avatars.githubusercontent.com/u/24823972?v=4",
+    ];
+    const randomIndex = Math.floor(Math.random() * PROFILE_PICS.length);
+    const profileImg = PROFILE_PICS[randomIndex]; // ✅ This stores the correct path
+
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
       role,
+      profileImg,
     });
     await newUser.save();
     const { password: _, ...user } = newUser.toObject();
@@ -96,6 +106,19 @@ export const getMe = async (req, res) => {
     return res.status(200).json(user);
   } catch (error) {
     console.log("Error in getMe:", error.message);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// get all technicians
+export const getAllTechnicians = async (req, res) => {
+  try {
+    const technicians = await User.find({ role: "technician" }).select(
+      "-password"
+    );
+    return res.status(200).json(technicians);
+  } catch (error) {
+    console.log("Error in getAllTechnicians:", error.message);
     return res.status(500).json({ message: "Server error" });
   }
 };
