@@ -1,15 +1,14 @@
+import dotenv from "dotenv";  // 1️⃣ Load environment variables first
 
+dotenv.config();  // Ensure .env variables are available globally
 
-import { connectToDb } from "./config/db.js";
-import authRoutes from './routes/user.route.js'
-import issueRoutes from './routes/issue.route.js'
+import express from "express";  // 2️⃣ Import core modules next
+import cors from "cors";  // 3️⃣ Middleware imports
 import cookieParser from "cookie-parser";
-import cors from "cors";
-import express from "express";
 
-import dotenv from "dotenv";
-
-dotenv.config()
+import { connectToDb } from "./config/db.js";  // 4️⃣ Connect to database early
+import authRoutes from "./routes/user.route.js";  // 5️⃣ Import route handlers
+import issueRoutes from "./routes/issue.route.js";
 
 const app = express();
 
