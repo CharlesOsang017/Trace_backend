@@ -1,7 +1,6 @@
 import express from "express";  // 2️⃣ Import core modules next
 import cors from "cors";  // 3️⃣ Middleware imports
 import cookieParser from "cookie-parser";
-
 import { connectToDb } from "./config/db.js";  // 4️⃣ Connect to database early
 import authRoutes from "./routes/user.route.js";  // 5️⃣ Import route handlers
 import issueRoutes from "./routes/issue.route.js";
