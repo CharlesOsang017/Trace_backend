@@ -1,32 +1,53 @@
-import express from "express";  // 2️⃣ Import core modules next
-import cors from "cors";  // 3️⃣ Middleware imports
+import express from "express";
+import cors from "cors";
 import cookieParser from "cookie-parser";
-import { connectToDb } from "./config/db.js";  // 4️⃣ Connect to database early
-import authRoutes from "./routes/user.route.js";  // 5️⃣ Import route handlers
-import issueRoutes from "./routes/issue.route.js";
-import dotenv from "dotenv";  // 1️⃣ Load environment variables first
+import dotenv from "dotenv";
 
-dotenv.config();  // Ensure .env variables are available globally
+import { connectToDb } from "./config/db.js";
+import authRoutes from "./routes/user.route.js";
+import issueRoutes from "./routes/issue.route.js";
+
+// Load environment variables first
+dotenv.config();
+
+// Create an Express application
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(cookieParser());
-app.use(
+// Middleware configuration
+const middleware = [
+  express.json(),
+  cookieParser(),
   cors({
-    origin: "http://localhost:3000", 
-    credentials: true, 
-  })
-);
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
+];
 
+app.use(middleware);
 
-// routes
-app.use('/api/v1/users', authRoutes)
-app.use('/api/v1/issues', issueRoutes)
+// Routes configuration
+const routes = [
+  { path: "/api/v1/users", handler: authRoutes },
+  { path: "/api/v1/issues", handler: issueRoutes },
+];
+
+routes.forEach((route) => app.use(route.path, route.handler));
+
+// Port configuration
 const PORT = process.env.PORT || 5000;
 
+// Server startup
+const startServer = async () => {
+  try {
+    console.log(`Connecting to the database...`);
+    await connectToDb(); // Ensure DB is connected first
+    console.log(`Server is running on port ${PORT}`);
+
+    app.listen(PORT);
+  } catch (error) {
+    console.error("Error starting the server:", error);
+  }
+};
+
 // Start the server
-app.listen(PORT, async () => {
-  console.log(`Server is running on port ${PORT}`);
-  await connectToDb()
-});
+startServer();
