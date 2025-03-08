@@ -15,12 +15,18 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? ["https://trace-zeta.vercel.app"] 
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: "https://trace-zeta.vercel.app/",
+    origin: allowedOrigins,
     credentials: true,
   })
 );
+
 
 // routes
 app.use("/api/v1/users", authRoutes);
